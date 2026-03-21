@@ -1,45 +1,31 @@
 import { NextRequest } from "next/server";
 import { ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
-import { loginSchema } from "@/types/auth";
+import { forgotPasswordSchema } from "@/types/auth";
 import authService from "@/service/auth/auth.service";
 import { successResponse, errorResponse } from "@/lib/api-response";
 import { rateLimit } from "@/lib/rate-limit";
 import { AppError } from "@/lib/errors";
 
 /**
- * POST /api/auth/login
- * Authenticate user with email + password.
- * Rejects unverified emails. Sets HTTP-only cookie.
+ * POST /api/auth/forgot-password
+ * Send password reset email with a secure token link.
  */
 export async function POST(request: NextRequest) {
   try {
     // Rate limit by IP
     const ip = request.headers.get("x-forwarded-for") ?? "unknown";
-    const rateLimitResult = rateLimit(`login:${ip}`, 5, 60_000);
+    const rateLimitResult = rateLimit(`forgot-pw:${ip}`, 3, 60_000);
     if (!rateLimitResult.success) {
       return errorResponse("Too many requests. Please try again later.", 429);
     }
 
     const body = await request.json();
+    const validated = forgotPasswordSchema.parse(body);
 
-    // Validate input
-    const validated = loginSchema.parse(body);
+    const result = await authService.forgotPassword(validated.email);
 
-    // Login user
-    const result = await authService.login(validated);
-
-    // Set access token as HTTP-only cookie
-    const response = successResponse(result, 200);
-    response.cookies.set("accessToken", result.accessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 30 * 24 * 60 * 60, // 30 days
-      path: "/",
-    });
-
-    return response;
+    return successResponse(result, 200);
   } catch (error) {
     if (error instanceof ZodError) {
       const validationError = fromZodError(error);
@@ -50,7 +36,7 @@ export async function POST(request: NextRequest) {
       return errorResponse(error.message, error.statusCode);
     }
 
-    console.error("Login error:", error);
+    console.error("Forgot password error:", error);
     return errorResponse("Internal server error", 500);
   }
 }

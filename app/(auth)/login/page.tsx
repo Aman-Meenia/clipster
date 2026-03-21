@@ -4,16 +4,15 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { z } from "zod";
-import { registerSchema, type RegisterInput } from "@/types/auth";
-import { Film, Eye, EyeOff, Loader2, ArrowRight, Check } from "lucide-react";
+import { loginSchema, type LoginInput } from "@/types/auth";
+import { Film, Eye, EyeOff, Loader2, ArrowRight } from "lucide-react";
 
-type FieldErrors = Partial<Record<keyof RegisterInput, string>>;
+type FieldErrors = Partial<Record<keyof LoginInput, string>>;
 
-export default function RegisterPage() {
+export default function LoginPage() {
   const router = useRouter();
 
-  const [form, setForm] = useState<RegisterInput>({
-    username: "",
+  const [form, setForm] = useState<LoginInput>({
     email: "",
     password: "",
   });
@@ -25,8 +24,7 @@ export default function RegisterPage() {
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
-    // Clear field error on change
-    if (errors[name as keyof RegisterInput]) {
+    if (errors[name as keyof LoginInput]) {
       setErrors((prev) => ({ ...prev, [name]: undefined }));
     }
   }
@@ -35,12 +33,12 @@ export default function RegisterPage() {
     e.preventDefault();
     setServerError(null);
 
-    // Client-side Zod validation
-    const result = registerSchema.safeParse(form);
+    // Client-side validation
+    const result = loginSchema.safeParse(form);
     if (!result.success) {
       const fieldErrors: FieldErrors = {};
       for (const issue of result.error.issues) {
-        const key = issue.path[0] as keyof RegisterInput;
+        const key = issue.path[0] as keyof LoginInput;
         if (!fieldErrors[key]) fieldErrors[key] = issue.message;
       }
       setErrors(fieldErrors);
@@ -49,7 +47,7 @@ export default function RegisterPage() {
 
     setIsLoading(true);
     try {
-      const res = await fetch("/api/auth/register", {
+      const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(result.data),
@@ -58,28 +56,20 @@ export default function RegisterPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        setServerError(data.message ?? "Registration failed. Please try again.");
+        setServerError(
+          data.error?.message ?? "Login failed. Please try again."
+        );
         return;
       }
 
-      // Redirect to email verification, passing email as query param
-      router.push(`/verify-email?email=${encodeURIComponent(form.email)}`);
+      // Redirect to dashboard on successful login
+      router.push("/dashboard");
     } catch {
       setServerError("Something went wrong. Please try again.");
     } finally {
       setIsLoading(false);
     }
   }
-
-  // Password strength indicators
-  const pwd = form.password;
-  const checks = {
-    length: pwd.length >= 8,
-    upper: /[A-Z]/.test(pwd),
-    lower: /[a-z]/.test(pwd),
-    number: /[0-9]/.test(pwd),
-  };
-  const strength = Object.values(checks).filter(Boolean).length;
 
   return (
     <main className="relative min-h-screen flex items-center justify-center overflow-hidden bg-[var(--background)]">
@@ -88,7 +78,7 @@ export default function RegisterPage() {
       <div className="aurora-orb aurora-orb-2" />
       <div className="aurora-orb aurora-orb-3" />
 
-      {/* Subtle grid */}
+      {/* Grid */}
       <div
         className="absolute inset-0 opacity-[0.025]"
         style={{
@@ -101,21 +91,24 @@ export default function RegisterPage() {
       <div className="relative z-10 w-full max-w-md px-6 py-12 animate-fade-in-up">
         {/* Logo */}
         <div className="flex flex-col items-center mb-8">
-          <div className="flex items-center gap-2 mb-6">
+          <Link
+            href="/"
+            className="flex items-center gap-2 mb-6 cursor-pointer"
+            aria-label="Go to home"
+          >
             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-cosmic-violet to-cosmic-cyan flex items-center justify-center shadow-lg shadow-cosmic-violet/30">
               <Film className="w-5 h-5 text-white" />
             </div>
             <span className="text-xl font-extrabold tracking-wide text-white">
               CLIPSTER
             </span>
-          </div>
+          </Link>
 
           <h1 className="text-4xl font-extrabold text-white text-center leading-tight">
-            Create your{" "}
-            <span className="gradient-text">account.</span>
+            Welcome <span className="gradient-text">back.</span>
           </h1>
           <p className="mt-3 text-white/50 text-sm text-center">
-            Join 60K+ creators earning from their content.
+            Sign in to continue creating and earning.
           </p>
         </div>
 
@@ -128,33 +121,12 @@ export default function RegisterPage() {
           )}
 
           <form onSubmit={handleSubmit} noValidate className="space-y-5">
-            {/* Username */}
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-white/70" htmlFor="username">
-                Username
-              </label>
-              <input
-                id="username"
-                name="username"
-                type="text"
-                autoComplete="username"
-                value={form.username}
-                onChange={handleChange}
-                placeholder="your_username"
-                className={`w-full rounded-xl bg-white/[0.07] border px-4 py-3 text-sm text-white placeholder-white/30 outline-none transition-all focus:bg-white/[0.1] focus:border-cosmic-violet/60 focus:ring-2 focus:ring-cosmic-violet/20 ${
-                  errors.username
-                    ? "border-red-500/50"
-                    : "border-white/10"
-                }`}
-              />
-              {errors.username && (
-                <p className="text-xs text-red-400 mt-1">{errors.username}</p>
-              )}
-            </div>
-
             {/* Email */}
             <div className="space-y-1.5">
-              <label className="text-sm font-medium text-white/70" htmlFor="email">
+              <label
+                className="text-sm font-medium text-white/70"
+                htmlFor="email"
+              >
                 Email address
               </label>
               <input
@@ -166,9 +138,7 @@ export default function RegisterPage() {
                 onChange={handleChange}
                 placeholder="you@example.com"
                 className={`w-full rounded-xl bg-white/[0.07] border px-4 py-3 text-sm text-white placeholder-white/30 outline-none transition-all focus:bg-white/[0.1] focus:border-cosmic-violet/60 focus:ring-2 focus:ring-cosmic-violet/20 ${
-                  errors.email
-                    ? "border-red-500/50"
-                    : "border-white/10"
+                  errors.email ? "border-red-500/50" : "border-white/10"
                 }`}
               />
               {errors.email && (
@@ -178,22 +148,31 @@ export default function RegisterPage() {
 
             {/* Password */}
             <div className="space-y-1.5">
-              <label className="text-sm font-medium text-white/70" htmlFor="password">
-                Password
-              </label>
+              <div className="flex items-center justify-between">
+                <label
+                  className="text-sm font-medium text-white/70"
+                  htmlFor="password"
+                >
+                  Password
+                </label>
+                <Link
+                  href="/forgot-password"
+                  className="text-xs text-cosmic-purple hover:text-white transition-colors"
+                >
+                  Forgot password?
+                </Link>
+              </div>
               <div className="relative">
                 <input
                   id="password"
                   name="password"
                   type={showPassword ? "text" : "password"}
-                  autoComplete="new-password"
+                  autoComplete="current-password"
                   value={form.password}
                   onChange={handleChange}
-                  placeholder="Min. 8 characters"
+                  placeholder="Enter your password"
                   className={`w-full rounded-xl bg-white/[0.07] border px-4 py-3 pr-12 text-sm text-white placeholder-white/30 outline-none transition-all focus:bg-white/[0.1] focus:border-cosmic-violet/60 focus:ring-2 focus:ring-cosmic-violet/20 ${
-                    errors.password
-                      ? "border-red-500/50"
-                      : "border-white/10"
+                    errors.password ? "border-red-500/50" : "border-white/10"
                   }`}
                 />
                 <button
@@ -211,50 +190,6 @@ export default function RegisterPage() {
               {errors.password && (
                 <p className="text-xs text-red-400 mt-1">{errors.password}</p>
               )}
-
-              {/* Password strength */}
-              {pwd.length > 0 && (
-                <div className="mt-2 space-y-2">
-                  <div className="flex gap-1">
-                    {[1, 2, 3, 4].map((i) => (
-                      <div
-                        key={i}
-                        className={`h-1 flex-1 rounded-full transition-all duration-300 ${
-                          i <= strength
-                            ? strength <= 1
-                              ? "bg-red-500"
-                              : strength <= 2
-                              ? "bg-amber-500"
-                              : strength <= 3
-                              ? "bg-sky-400"
-                              : "bg-emerald-400"
-                            : "bg-white/10"
-                        }`}
-                      />
-                    ))}
-                  </div>
-                  <ul className="grid grid-cols-2 gap-x-4 gap-y-1">
-                    {(
-                      [
-                        [checks.length, "At least 8 characters"],
-                        [checks.upper, "One uppercase letter"],
-                        [checks.lower, "One lowercase letter"],
-                        [checks.number, "One number"],
-                      ] as [boolean, string][]
-                    ).map(([ok, label]) => (
-                      <li
-                        key={label}
-                        className={`flex items-center gap-1.5 text-xs transition-colors ${
-                          ok ? "text-emerald-400" : "text-white/30"
-                        }`}
-                      >
-                        <Check className="w-3 h-3 flex-shrink-0" />
-                        {label}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
             </div>
 
             {/* Submit */}
@@ -267,7 +202,7 @@ export default function RegisterPage() {
                 <Loader2 className="w-4 h-4 animate-spin" />
               ) : (
                 <>
-                  Create Account
+                  Sign In
                   <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
                 </>
               )}
@@ -275,20 +210,29 @@ export default function RegisterPage() {
           </form>
         </div>
 
-        {/* Footer links */}
+        {/* Footer */}
         <p className="mt-6 text-center text-xs text-white/30">
-          Already have an account?{" "}
-          <Link href="/login" className="text-cosmic-purple hover:text-white transition-colors underline underline-offset-2">
-            Sign in
+          Don&apos;t have an account?{" "}
+          <Link
+            href="/signup"
+            className="text-cosmic-purple hover:text-white transition-colors underline underline-offset-2"
+          >
+            Sign up
           </Link>
         </p>
         <p className="mt-3 text-center text-xs text-white/20">
           By continuing, you agree to our{" "}
-          <Link href="/terms" className="underline hover:text-white/40 transition-colors">
+          <Link
+            href="/terms"
+            className="underline hover:text-white/40 transition-colors"
+          >
             Terms of Service
           </Link>{" "}
           and{" "}
-          <Link href="/privacy" className="underline hover:text-white/40 transition-colors">
+          <Link
+            href="/privacy"
+            className="underline hover:text-white/40 transition-colors"
+          >
             Privacy Policy
           </Link>
         </p>

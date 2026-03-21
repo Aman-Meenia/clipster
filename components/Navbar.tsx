@@ -64,7 +64,7 @@ export default function Navbar() {
             Launch Campaign
           </Link>
           <Link
-            href="#"
+            href="/login"
             className="rounded-full bg-gradient-to-r from-cosmic-violet to-cosmic-cyan px-5 py-2.5 text-sm font-semibold text-white transition-all hover:opacity-90 hover:shadow-lg hover:shadow-cosmic-violet/25"
           >
             Join as Creator
@@ -77,7 +77,11 @@ export default function Navbar() {
           className="text-white/80 md:hidden"
           aria-label="Toggle menu"
         >
-          {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+          {mobileOpen ? (
+            <X className="h-6 w-6" />
+          ) : (
+            <Menu className="h-6 w-6" />
+          )}
         </button>
       </div>
 
