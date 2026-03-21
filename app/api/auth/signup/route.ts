@@ -1,22 +1,22 @@
 import { NextRequest } from "next/server";
 import { ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
-import { loginSchema } from "@/types/auth";
+import { signupSchema } from "@/types/auth";
 import authService from "@/service/auth/auth.service";
 import { successResponse, errorResponse } from "@/lib/api-response";
 import { rateLimit } from "@/lib/rate-limit";
 import { AppError } from "@/lib/errors";
 
 /**
- * POST /api/auth/login
- * Authenticate user with email + password.
- * Rejects unverified emails. Sets HTTP-only cookie.
+ * POST /api/auth/signup
+ * Complete signup — called after phone OTP has been verified on the frontend.
+ * Creates user, sends verification email, returns auth response.
  */
 export async function POST(request: NextRequest) {
   try {
     // Rate limit by IP
     const ip = request.headers.get("x-forwarded-for") ?? "unknown";
-    const rateLimitResult = rateLimit(`login:${ip}`, 5, 60_000);
+    const rateLimitResult = rateLimit(`signup:${ip}`, 5, 60_000);
     if (!rateLimitResult.success) {
       return errorResponse("Too many requests. Please try again later.", 429);
     }
@@ -24,13 +24,13 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
 
     // Validate input
-    const validated = loginSchema.parse(body);
+    const validated = signupSchema.parse(body);
 
-    // Login user
-    const result = await authService.login(validated);
+    // Register user
+    const result = await authService.register(validated);
 
     // Set access token as HTTP-only cookie
-    const response = successResponse(result, 200);
+    const response = successResponse(result, 201);
     response.cookies.set("accessToken", result.accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
       return errorResponse(error.message, error.statusCode);
     }
 
-    console.error("Login error:", error);
+    console.error("Signup error:", error);
     return errorResponse("Internal server error", 500);
   }
 }

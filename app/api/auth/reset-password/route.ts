@@ -1,22 +1,26 @@
 import { NextRequest } from "next/server";
 import { ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
-import { registerSchema } from "@/types/auth";
+import { resetPasswordSchema } from "@/types/auth";
 import authService from "@/service/auth/auth.service";
 import { successResponse, errorResponse } from "@/lib/api-response";
 import { AppError } from "@/lib/errors";
 
+/**
+ * POST /api/auth/reset-password
+ * Reset password using token from the reset email.
+ */
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
+    const validated = resetPasswordSchema.parse(body);
 
-    // Validate input
-    const validated = registerSchema.parse(body);
+    const result = await authService.resetPassword(
+      validated.token,
+      validated.password
+    );
 
-    // Register user
-    const result = await authService.register(validated);
-
-    return successResponse(result, 201);
+    return successResponse(result, 200);
   } catch (error) {
     if (error instanceof ZodError) {
       const validationError = fromZodError(error);
@@ -27,7 +31,7 @@ export async function POST(request: NextRequest) {
       return errorResponse(error.message, error.statusCode);
     }
 
-    console.error("Register error:", error);
+    console.error("Reset password error:", error);
     return errorResponse("Internal server error", 500);
   }
 }
