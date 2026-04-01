@@ -33,13 +33,20 @@ model User {
 }
 
 model ConnectedAccount {
-  id         String   @id @default(uuid())
-  userId     String
-  accountUrl String
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id               String    @id @default(uuid())
+  userId           String
+  username         String
+  accountUrl       String
+  verificationCode String
+  isVerified       Boolean   @default(false)
+  verifiedAt       DateTime?
+  codeExpiresAt    DateTime
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@unique([userId, username])
   @@index([userId])
+  @@index([verificationCode])
   @@map("connected_accounts")
 }
