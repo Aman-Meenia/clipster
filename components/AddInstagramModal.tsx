@@ -41,6 +41,7 @@ export default function AddInstagramModal({
     useState<VerificationData | null>(null);
   const [copied, setCopied] = useState(false);
   const [verifyMessage, setVerifyMessage] = useState("");
+  const [showManualConfirm, setShowManualConfirm] = useState(false);
 
   const resetModal = () => {
     setStep("input");
@@ -50,6 +51,7 @@ export default function AddInstagramModal({
     setVerificationData(null);
     setCopied(false);
     setVerifyMessage("");
+    setShowManualConfirm(false);
   };
 
   const handleClose = () => {
@@ -115,9 +117,48 @@ export default function AddInstagramModal({
     setIsLoading(true);
     setError("");
     setVerifyMessage("");
+    setShowManualConfirm(false);
 
     try {
       const response = await fetch("/api/instagram/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ accountId: verificationData.accountId }),
+      });
+
+      const result = await response.json();
+
+      if (!result.success) {
+        setError(result.error?.message || "Verification failed");
+        return;
+      }
+
+      if (result.data.success) {
+        setStep("success");
+        onAccountAdded();
+      } else {
+        setVerifyMessage(result.data.message);
+        // Show manual confirm button if auto-verify can't fetch profile
+        if (result.data.requiresManualConfirmation) {
+          setShowManualConfirm(true);
+        }
+      }
+    } catch {
+      setError("Network error. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleManualVerify = async () => {
+    if (!verificationData) return;
+
+    setIsLoading(true);
+    setError("");
+    setVerifyMessage("");
+
+    try {
+      const response = await fetch("/api/instagram/manual-verify", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ accountId: verificationData.accountId }),
@@ -285,7 +326,7 @@ export default function AddInstagramModal({
                     <span className="shrink-0 w-5 h-5 rounded-full bg-red-500/20 text-red-500 text-xs font-bold flex items-center justify-center">
                       4
                     </span>
-                    <span>Click Verify below (profile must be public)</span>
+                    <span>Click Verify below to check automatically, or confirm manually</span>
                   </li>
                 </ol>
               </div>
@@ -368,20 +409,40 @@ export default function AddInstagramModal({
               >
                 Back
               </button>
-              <button
-                onClick={handleVerify}
-                disabled={isLoading}
-                className="px-5 py-2 text-sm font-medium text-white bg-red-500 hover:bg-red-600 rounded-lg transition-colors shadow-lg shadow-red-500/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Verifying...
-                  </>
-                ) : (
-                  "Verify"
-                )}
-              </button>
+              {showManualConfirm ? (
+                <button
+                  onClick={handleManualVerify}
+                  disabled={isLoading}
+                  className="px-5 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors shadow-lg shadow-green-500/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Confirming...
+                    </>
+                  ) : (
+                    <>
+                      <Check className="w-4 h-4" />
+                      I&apos;ve Added the Code
+                    </>
+                  )}
+                </button>
+              ) : (
+                <button
+                  onClick={handleVerify}
+                  disabled={isLoading}
+                  className="px-5 py-2 text-sm font-medium text-white bg-red-500 hover:bg-red-600 rounded-lg transition-colors shadow-lg shadow-red-500/20 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Verifying...
+                    </>
+                  ) : (
+                    "Verify"
+                  )}
+                </button>
+              )}
             </>
           )}
 

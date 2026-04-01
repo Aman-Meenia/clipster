@@ -46,6 +46,7 @@ export interface VerifyAccountResponse {
   success: boolean;
   message: string;
   account?: ConnectedAccountResponse;
+  requiresManualConfirmation?: boolean;
 }
 
 // ── Inferred Types ─────────────────────────────────────────

@@ -269,7 +269,8 @@ class InstagramService {
       return {
         success: false,
         message:
-          "Unable to fetch Instagram profile. The profile may be private or temporarily unavailable. Please ensure your profile is public and try again.",
+          "Unable to automatically verify. Instagram may be blocking our request. Please use the 'I've added the code' button to manually confirm.",
+        requiresManualConfirmation: true,
       };
     }
 
@@ -292,6 +293,58 @@ class InstagramService {
     return {
       success: true,
       message: "Instagram account verified successfully! You can now remove the code from your bio.",
+      account: this.formatAccount(verified),
+    };
+  }
+
+  /**
+   * Manually confirm verification (user confirms they added the code).
+   * This is a fallback when automatic scraping fails.
+   */
+  async manualVerify(
+    userId: string,
+    accountId: string
+  ): Promise<VerifyAccountResponse> {
+    const account = await prisma.connectedAccount.findUnique({
+      where: { id: accountId },
+    });
+
+    if (!account) {
+      throw new AppError("Account not found", 404);
+    }
+
+    if (account.userId !== userId) {
+      throw new AppError("Unauthorized", 403);
+    }
+
+    if (account.isVerified) {
+      return {
+        success: true,
+        message: "Account is already verified",
+        account: this.formatAccount(account),
+      };
+    }
+
+    // Check if code has expired
+    if (new Date() > account.codeExpiresAt) {
+      throw new AppError(
+        "Verification code has expired. Please generate a new one.",
+        400
+      );
+    }
+
+    // Trust user confirmation - mark as verified
+    const verified = await prisma.connectedAccount.update({
+      where: { id: accountId },
+      data: {
+        isVerified: true,
+        verifiedAt: new Date(),
+      },
+    });
+
+    return {
+      success: true,
+      message: "Instagram account connected! You can now remove the code from your bio.",
       account: this.formatAccount(verified),
     };
   }
