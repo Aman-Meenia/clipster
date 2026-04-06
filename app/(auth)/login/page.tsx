@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useAuth } from "@/context/AuthContext";
 import { z } from "zod";
 import { loginSchema, type LoginInput } from "@/types/auth";
 import { Film, Eye, EyeOff, Loader2, ArrowRight } from "lucide-react";
@@ -11,6 +12,17 @@ type FieldErrors = Partial<Record<keyof LoginInput, string>>;
 
 export default function LoginPage() {
   const router = useRouter();
+  const { user, login } = useAuth();
+
+  useEffect(() => {
+    if (user) {
+      if (user.role === "ADMIN") {
+        router.push("/admin/dashboard");
+      } else {
+        router.push("/dashboard");
+      }
+    }
+  }, [user, router]);
 
   const [form, setForm] = useState<LoginInput>({
     email: "",
@@ -62,7 +74,19 @@ export default function LoginPage() {
         return;
       }
 
-      // Redirect to dashboard on successful login
+      // Save via context
+      const authedUser = data.data?.user;
+      if (authedUser) {
+        login(authedUser);
+
+        // Redirect to admin page if user is ADMIN
+        if (authedUser.role === "ADMIN") {
+          router.push("/admin/dashboard");
+          return;
+        }
+      }
+
+      // Default redirect
       router.push("/dashboard");
     } catch {
       setServerError("Something went wrong. Please try again.");
@@ -137,9 +161,8 @@ export default function LoginPage() {
                 value={form.email}
                 onChange={handleChange}
                 placeholder="you@example.com"
-                className={`w-full rounded-xl bg-white/[0.07] border px-4 py-3 text-sm text-white placeholder-white/30 outline-none transition-all focus:bg-white/[0.1] focus:border-cosmic-violet/60 focus:ring-2 focus:ring-cosmic-violet/20 ${
-                  errors.email ? "border-red-500/50" : "border-white/10"
-                }`}
+                className={`w-full rounded-xl bg-white/[0.07] border px-4 py-3 text-sm text-white placeholder-white/30 outline-none transition-all focus:bg-white/[0.1] focus:border-cosmic-violet/60 focus:ring-2 focus:ring-cosmic-violet/20 ${errors.email ? "border-red-500/50" : "border-white/10"
+                  }`}
               />
               {errors.email && (
                 <p className="text-xs text-red-400 mt-1">{errors.email}</p>
@@ -171,9 +194,8 @@ export default function LoginPage() {
                   value={form.password}
                   onChange={handleChange}
                   placeholder="Enter your password"
-                  className={`w-full rounded-xl bg-white/[0.07] border px-4 py-3 pr-12 text-sm text-white placeholder-white/30 outline-none transition-all focus:bg-white/[0.1] focus:border-cosmic-violet/60 focus:ring-2 focus:ring-cosmic-violet/20 ${
-                    errors.password ? "border-red-500/50" : "border-white/10"
-                  }`}
+                  className={`w-full rounded-xl bg-white/[0.07] border px-4 py-3 pr-12 text-sm text-white placeholder-white/30 outline-none transition-all focus:bg-white/[0.1] focus:border-cosmic-violet/60 focus:ring-2 focus:ring-cosmic-violet/20 ${errors.password ? "border-red-500/50" : "border-white/10"
+                    }`}
                 />
                 <button
                   type="button"

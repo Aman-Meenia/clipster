@@ -12,20 +12,29 @@ enum Role {
   ADMIN
 }
 
+enum Platform {
+  INSTAGRAM
+  YOUTUBE
+  TIKTOK
+  TWITTER
+  FACEBOOK
+}
+
 model User {
-  id                     String             @id @default(uuid())
-  username               String             @unique
-  email                  String             @unique
+  id                     String               @id @default(uuid())
+  username               String               @unique
+  email                  String               @unique
   phoneNumber            String?
   password               String
-  role                   Role               @default(USER)
-  isEmailVerified        Boolean            @default(false)
+  role                   Role                 @default(USER)
+  isEmailVerified        Boolean              @default(false)
   emailVerificationToken String?
   resetPasswordToken     String?
   tokenExpiry            DateTime?
-  createdAt              DateTime           @default(now())
-  updatedAt              DateTime           @updatedAt
+  createdAt              DateTime             @default(now())
+  updatedAt              DateTime             @updatedAt
   connectedAccounts      ConnectedAccount[]
+  campaignSubmissions    CampaignSubmission[]
 
   @@index([email])
   @@index([username])
@@ -33,13 +42,60 @@ model User {
 }
 
 model ConnectedAccount {
+  id               String    @id @default(uuid())
+  userId           String
+  username         String
+  accountUrl       String
+  verificationCode String
+  isVerified       Boolean   @default(false)
+  verifiedAt       DateTime?
+  codeExpiresAt    DateTime
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, username])
+  @@index([userId])
+  @@index([verificationCode])
+  @@map("connected_accounts")
+}
+
+/// Influencer marketing campaign created and managed by admins.
+model Campaign {
+  id                            String               @id @default(uuid())
+  /// Storage keys (relative paths) for campaign images, e.g. "campaigns/abc123.webp".
+  images                        String[]
+  name                          String
+  description                   String
+  totalBudget                   Float
+  /// Platforms this campaign is active on.
+  supportedPlatforms            Platform[]
+  /// Maximum number of submissions allowed per social-media account.
+  maxSubmissionsPerAccount      Int
+  /// Fee paid to each creator who participates.
+  feePerCreator                 Float
+  /// Maximum earning a creator can make per post.
+  maxEarningPerPostPerCreator   Float
+  createdAt                     DateTime             @default(now())
+  updatedAt                     DateTime             @updatedAt
+  submissions                   CampaignSubmission[]
+
+  @@index([name])
+  @@map("campaigns")
+}
+
+/// A video submission made by a user for a specific campaign.
+model CampaignSubmission {
   id         String   @id @default(uuid())
   userId     String
-  accountUrl String
+  campaignId String
+  videoLink  String
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
 
   @@index([userId])
-  @@map("connected_accounts")
+  @@index([campaignId])
+  @@map("campaign_submissions")
 }

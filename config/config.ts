@@ -19,6 +19,14 @@ const envSchema = z.object({
   SMTP_PORT: z.string().default("587"),
   SMTP_USER: z.string().default(""),
   SMTP_PASS: z.string().default(""),
+  // Cloudflare R2 — get from Cloudflare Dashboard > R2 > Manage R2 API Tokens
+  // These default to "" so builds/prisma-generate don't crash when unconfigured.
+  // The R2 service constructor throws a clear error at runtime if any are missing.
+  R2_ACCOUNT_ID: z.string().default(""),
+  R2_ACCESS_KEY_ID: z.string().default(""),
+  R2_SECRET_ACCESS_KEY: z.string().default(""),
+  R2_BUCKET_NAME: z.string().default(""),
+  R2_PUBLIC_URL: z.string().default(""),
 });
 
 const parsed = envSchema.safeParse(process.env);
