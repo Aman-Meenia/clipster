@@ -46,3 +46,16 @@ export async function requireAuth(request: NextRequest): Promise<string> {
   const user = await getAuthenticatedUser(request);
   return user.userId;
 }
+
+/**
+ * Require the authenticated user to have ADMIN role.
+ * Returns the full JwtPayload on success, throws ForbiddenError otherwise.
+ */
+export async function requireAdmin(request: NextRequest): Promise<JwtPayload> {
+  const user = await getAuthenticatedUser(request);
+  if (user.role !== "ADMIN") {
+    const { ForbiddenError } = await import("@/lib/errors");
+    throw new ForbiddenError("Only administrators can access this resource");
+  }
+  return user;
+}
