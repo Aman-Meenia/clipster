@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
-import { Film, Megaphone, Users, LogOut, ShieldCheck } from "lucide-react";
+import { Film, Megaphone, Users, ClipboardList, LogOut, ShieldCheck } from "lucide-react";
 import SidebarBtn from "@/components/admin/SidebarBtn";
 import Modal from "@/components/admin/Modal";
 import Link from "next/link";
@@ -28,7 +28,8 @@ export default function AdminDashboardLayout({
   const [isLogoutOpen, setIsLogoutOpen] = useState(false);
 
   const isUsersActive = pathname.startsWith("/admin/dashboard/users");
-  const isCampaignsActive = !isUsersActive;
+  const isRequestsActive = pathname.startsWith("/admin/dashboard/campaign-requests");
+  const isCampaignsActive = !isUsersActive && !isRequestsActive;
 
   return (
     <div className="flex h-screen bg-[#060510] text-white overflow-hidden">
@@ -57,6 +58,12 @@ export default function AdminDashboardLayout({
             label="Users"
             active={isUsersActive}
             onClick={() => router.push("/admin/dashboard/users")}
+          />
+          <SidebarBtn
+            icon={ClipboardList}
+            label="Requests"
+            active={isRequestsActive}
+            onClick={() => router.push("/admin/dashboard/campaign-requests")}
           />
         </nav>
 

@@ -1,6 +1,6 @@
 // ─── Admin Dashboard shared types ───────────────────────────────────────────
 
-export type AdminTab = "campaigns" | "users";
+export type AdminTab = "campaigns" | "users" | "campaign-requests";
 
 export interface AdminUser {
   id: string;

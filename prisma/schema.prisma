@@ -99,3 +99,27 @@ model CampaignSubmission {
   @@index([campaignId])
   @@map("campaign_submissions")
 }
+
+enum CampaignRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+/// A campaign request submitted by a potential advertiser via the public form.
+model CampaignRequest {
+  id            String                @id @default(uuid())
+  fullName      String
+  email         String
+  phoneNumber   String?
+  title         String
+  campaignGoals String
+  status        CampaignRequestStatus @default(PENDING)
+  adminNotes    String?
+  createdAt     DateTime              @default(now())
+  updatedAt     DateTime              @updatedAt
+
+  @@index([status])
+  @@index([email])
+  @@map("campaign_requests")
+}

@@ -3,6 +3,7 @@ import Hero from "@/components/Hero";
 import Marquee from "@/components/Marquee";
 import Campaigns from "@/components/Campaigns";
 import HowItWorks from "@/components/HowItWorks";
+import CampaignRequestSection from "@/components/CampaignRequestSection";
 import Footer from "@/components/Footer";
 
 export default function Home() {
@@ -14,6 +15,7 @@ export default function Home() {
         <Marquee />
         <Campaigns />
         <HowItWorks />
+        <CampaignRequestSection />
       </main>
       <Footer />
     </>

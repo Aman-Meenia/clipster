@@ -67,7 +67,7 @@ export default function Hero() {
             <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
           </Link>
           <Link
-            href="#"
+            href="#campaign-request"
             className="group flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-8 py-4 text-base font-semibold text-white/80 transition-all hover:border-white/20 hover:bg-white/10 hover:text-white"
           >
             Launch Your Campaign
