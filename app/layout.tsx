@@ -10,7 +10,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "ClipVerse | Performance-Based Creator Marketing Platform",
+  title: "Reelpey | Performance-Based Creator Marketing Platform",
   description:
     "Turn your short-form videos into real earnings. Join 60K+ creators, explore campaigns from 200+ brands, and get paid for every verified view.",
   keywords: [
@@ -21,7 +21,7 @@ export const metadata: Metadata = {
     "short form video",
   ],
   openGraph: {
-    title: "ClipVerse | Performance-Based Creator Marketing Platform",
+    title: "Reelpey | Performance-Based Creator Marketing Platform",
     description:
       "Turn your short-form videos into real earnings. Join 60K+ creators and explore campaigns from 200+ brands.",
     type: "website",

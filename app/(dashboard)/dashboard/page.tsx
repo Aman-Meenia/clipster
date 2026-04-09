@@ -65,7 +65,7 @@ export default function DashboardPage() {
 
   return (
     <div className="flex h-screen bg-[#0B0C10] text-gray-100 overflow-hidden font-sans">
-      {/* ─── SIDEBAR ─── */}
+      {/* ─── SIDEBAR (desktop) + BOTTOM NAV (mobile) ─── */}
       <DashboardSidebar
         activeTab={activeTab}
         onTabChange={setActiveTab}
@@ -73,7 +73,7 @@ export default function DashboardPage() {
       />
 
       {/* ─── MAIN CONTENT ─── */}
-      <main className="flex-1 overflow-y-auto relative">
+      <main className="flex-1 overflow-y-auto relative pb-16 md:pb-0">
         {activeTab === "profile" && (
           <ProfileView
             user={user}

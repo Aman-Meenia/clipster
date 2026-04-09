@@ -7,7 +7,7 @@ import { ArrowRight } from "lucide-react";
 
 const campaignData = {
   "Most Popular": [
-    { name: "Clipster.gg [UGC]", budget: "$10,000", rate: "$1,500", budgetUsed: 12, category: "UGC" },
+    { name: "Reelpey [UGC]", budget: "$10,000", rate: "$1,500", budgetUsed: 12, category: "UGC" },
     { name: "OneState [CLIPPING] 4", budget: "$3,000", rate: "$1,500", budgetUsed: 3, category: "CLIPPING" },
     { name: "klepto [EDITS]", budget: "$1,000", rate: "$1,250", budgetUsed: 23, category: "EDITS" },
     { name: "Yeat × EsDeeKid [EDITS]", budget: "$2,910", rate: "$1,000", budgetUsed: 27, category: "EDITS" },

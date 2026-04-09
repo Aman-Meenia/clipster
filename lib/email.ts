@@ -38,7 +38,7 @@ export async function sendVerificationEmail(
         <!-- Header -->
         <div style="text-align:center;padding:32px 0 24px;">
           <div style="display:inline-block;background:linear-gradient(135deg,#7c3aed,#06b6d4);padding:10px 14px;border-radius:12px;">
-            <span style="color:#ffffff;font-size:20px;font-weight:800;letter-spacing:1px;">CLIPSTER</span>
+            <span style="color:#ffffff;font-size:20px;font-weight:800;letter-spacing:1px;">REELPEY</span>
           </div>
         </div>
 
@@ -72,7 +72,7 @@ export async function sendVerificationEmail(
 
         <!-- Footer -->
         <p style="margin:24px 0 0;color:rgba(255,255,255,0.2);font-size:11px;text-align:center;">
-          © ${new Date().getFullYear()} Clipster. All rights reserved.
+          © ${new Date().getFullYear()} Reelpey. All rights reserved.
         </p>
       </div>
     </body>
@@ -80,9 +80,9 @@ export async function sendVerificationEmail(
   `;
 
   const info = await transporter.sendMail({
-    from: '"Clipster" <noreply@clipster.app>',
+    from: '"Reelpey" <noreply@reelpey.com>',
     to,
-    subject: "Verify your email — Clipster",
+    subject: "Verify your email — Reelpey",
     html,
   });
 
@@ -112,7 +112,7 @@ export async function sendResetPasswordEmail(
         <!-- Header -->
         <div style="text-align:center;padding:32px 0 24px;">
           <div style="display:inline-block;background:linear-gradient(135deg,#7c3aed,#06b6d4);padding:10px 14px;border-radius:12px;">
-            <span style="color:#ffffff;font-size:20px;font-weight:800;letter-spacing:1px;">CLIPSTER</span>
+            <span style="color:#ffffff;font-size:20px;font-weight:800;letter-spacing:1px;">REELPEY</span>
           </div>
         </div>
 
@@ -146,7 +146,7 @@ export async function sendResetPasswordEmail(
 
         <!-- Footer -->
         <p style="margin:24px 0 0;color:rgba(255,255,255,0.2);font-size:11px;text-align:center;">
-          © ${new Date().getFullYear()} Clipster. All rights reserved.
+          © ${new Date().getFullYear()} Reelpey. All rights reserved.
         </p>
       </div>
     </body>
@@ -154,9 +154,9 @@ export async function sendResetPasswordEmail(
   `;
 
   const info = await transporter.sendMail({
-    from: '"Clipster" <noreply@clipster.app>',
+    from: '"Reelpey" <noreply@reelpey.com>',
     to,
-    subject: "Reset your password — Clipster",
+    subject: "Reset your password — Reelpey",
     html,
   });
 

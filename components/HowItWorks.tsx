@@ -62,7 +62,7 @@ export default function HowItWorks() {
         {/* Section Header */}
         <div className="text-center mb-16 reveal">
           <h2 className="text-3xl font-extrabold text-white sm:text-4xl lg:text-5xl">
-            How <span className="gradient-text">ClipVerse</span> Works
+            How <span className="gradient-text">Reelpey</span> Works
           </h2>
           <p className="mt-4 text-lg text-white/40 max-w-xl mx-auto">
             The easiest way to get paid for your content. Three simple steps.

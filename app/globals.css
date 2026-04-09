@@ -275,3 +275,19 @@
   opacity: 1;
   transform: translateY(0);
 }
+
+/* ── Safe Area for Mobile Bottom Nav ─────────────── */
+
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* ── Scrollbar-none utility ──────────────────────── */
+
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}

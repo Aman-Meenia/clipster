@@ -124,7 +124,7 @@ export default function LoginPage() {
               <Film className="w-5 h-5 text-white" />
             </div>
             <span className="text-xl font-extrabold tracking-wide text-white">
-              CLIPSTER
+              REELPEY
             </span>
           </Link>
 

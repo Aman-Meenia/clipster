@@ -29,7 +29,7 @@ export default function Navbar() {
             <Zap className="h-5 w-5 text-white" />
           </div>
           <span className="text-xl font-bold tracking-tight text-white">
-            Clip<span className="gradient-text">Verse</span>
+            Reel<span className="gradient-text">pey</span>
           </span>
         </Link>
 
@@ -57,12 +57,12 @@ export default function Navbar() {
 
         {/* Desktop CTAs */}
         <div className="hidden items-center gap-3 md:flex">
-          <Link
-            href="#"
+          <a
+            href="#campaign-request"
             className="rounded-full border border-white/10 px-5 py-2.5 text-sm font-medium text-white/80 transition-all hover:border-cosmic-violet/50 hover:text-white hover:shadow-lg hover:shadow-cosmic-violet/10"
           >
             Launch Campaign
-          </Link>
+          </a>
           <Link
             href="/login"
             className="rounded-full bg-gradient-to-r from-cosmic-violet to-cosmic-cyan px-5 py-2.5 text-sm font-semibold text-white transition-all hover:opacity-90 hover:shadow-lg hover:shadow-cosmic-violet/25"
@@ -89,37 +89,39 @@ export default function Navbar() {
       {mobileOpen && (
         <div className="glass mt-2 mx-4 rounded-2xl p-6 md:hidden animate-fade-in-up">
           <div className="flex flex-col gap-4">
-            <Link
+            <a
               href="#campaigns"
-              className="text-sm font-medium text-white/70 hover:text-white"
+              className="text-sm font-medium text-white/70 hover:text-white transition-colors"
               onClick={() => setMobileOpen(false)}
             >
               Campaigns
-            </Link>
-            <Link
+            </a>
+            <a
               href="#how-it-works"
-              className="text-sm font-medium text-white/70 hover:text-white"
+              className="text-sm font-medium text-white/70 hover:text-white transition-colors"
               onClick={() => setMobileOpen(false)}
             >
               How It Works
-            </Link>
-            <Link
+            </a>
+            <a
               href="#"
-              className="text-sm font-medium text-white/70 hover:text-white"
+              className="text-sm font-medium text-white/70 hover:text-white transition-colors"
               onClick={() => setMobileOpen(false)}
             >
               Creators
-            </Link>
+            </a>
             <hr className="border-white/10" />
-            <Link
-              href="#"
-              className="rounded-full border border-white/10 px-5 py-2.5 text-center text-sm font-medium text-white/80"
+            <a
+              href="#campaign-request"
+              className="rounded-full border border-white/10 px-5 py-2.5 text-center text-sm font-medium text-white/80 transition-all hover:border-cosmic-violet/50 hover:text-white"
+              onClick={() => setMobileOpen(false)}
             >
               Launch Campaign
-            </Link>
+            </a>
             <Link
-              href="#"
-              className="rounded-full bg-gradient-to-r from-cosmic-violet to-cosmic-cyan px-5 py-2.5 text-center text-sm font-semibold text-white"
+              href="/login"
+              className="rounded-full bg-gradient-to-r from-cosmic-violet to-cosmic-cyan px-5 py-2.5 text-center text-sm font-semibold text-white transition-all hover:opacity-90"
+              onClick={() => setMobileOpen(false)}
             >
               Join as Creator
             </Link>
