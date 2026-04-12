@@ -1,17 +1,20 @@
 "use client";
 
 import { User, Copy, Wallet, Trash2 } from "lucide-react";
+import PhoneNumberCard from "@/components/dashboard/profile/PhoneNumberCard";
 
 interface ProfileBottomGridProps {
   user: {
     username: string;
     email: string;
+    phoneNumber?: string | null;
   };
 }
 
 export default function ProfileBottomGrid({ user }: ProfileBottomGridProps) {
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+      <PhoneNumberCard phoneNumber={user.phoneNumber} />
       <PaymentMethodsCard />
       <LoginMethodsCard email={user.email} />
       <UsernameCard username={user.username} />

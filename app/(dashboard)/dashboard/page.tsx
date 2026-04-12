@@ -22,6 +22,7 @@ export default function DashboardPage() {
   const user = {
     username: authUser?.username || "Guest",
     email: authUser?.email || "",
+    phoneNumber: authUser?.phoneNumber ?? null,
     memberSince: authUser?.createdAt
       ? new Date(authUser.createdAt).toLocaleDateString()
       : "Present",

@@ -17,25 +17,21 @@ import type {
 
 class AuthService {
   /**
-   * Register a new user (called after phone OTP is verified on frontend).
+   * Register a new user.
    * Creates user with username = email, sends verification email.
+   * Phone number is NOT collected at signup — it can be added later via profile.
    */
   async register(input: SignupInput): Promise<AuthResponse> {
     const passwordStrategy = authRegistry.getPasswordStrategy();
     const tokenStrategy = authRegistry.getTokenStrategy();
 
-    // Check for existing user by email
-    const existingUser = await prisma.user.findFirst({
-      where: {
-        OR: [{ email: input.email }, { phoneNumber: input.phoneNumber }],
-      },
+    // Check for existing user by email only
+    const existingUser = await prisma.user.findUnique({
+      where: { email: input.email },
     });
 
     if (existingUser) {
-      if (existingUser.email === input.email) {
-        throw new ConflictError("A user with this email already exists");
-      }
-      throw new ConflictError("A user with this phone number already exists");
+      throw new ConflictError("A user with this email already exists");
     }
 
     // Hash password
@@ -45,12 +41,11 @@ class AuthService {
     const emailToken = generateSecureToken();
     const tokenExpiry = getTokenExpiry(24 * 60); // 24 hours
 
-    // Create user — username defaults to email
+    // Create user — username defaults to email, no phone number at signup
     const user = await prisma.user.create({
       data: {
         username: input.email,
         email: input.email,
-        phoneNumber: input.phoneNumber,
         password: hashedPassword,
         emailVerificationToken: emailToken,
         tokenExpiry,
@@ -115,6 +110,43 @@ class AuthService {
   }
 
   /**
+   * Resend email verification link.
+   * Generates a new token and sends a fresh email.
+   */
+  async resendVerificationEmail(email: string): Promise<{ message: string }> {
+    const user = await prisma.user.findUnique({
+      where: { email },
+    });
+
+    // Don't reveal whether the email exists
+    if (!user) {
+      return { message: "If an account exists with that email, a new verification link has been sent." };
+    }
+
+    // Already verified
+    if (user.isEmailVerified) {
+      return { message: "Email is already verified. You can log in." };
+    }
+
+    // Generate new verification token (valid for 24 hours)
+    const emailToken = generateSecureToken();
+    const tokenExpiry = getTokenExpiry(24 * 60);
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        emailVerificationToken: emailToken,
+        tokenExpiry,
+      },
+    });
+
+    // Send verification email
+    await sendVerificationEmail(user.email, emailToken);
+
+    return { message: "If an account exists with that email, a new verification link has been sent." };
+  }
+
+  /**
    * Login with email + password.
    * Rejects if email is not verified.
    */
@@ -171,6 +203,7 @@ class AuthService {
 
   /**
    * Forgot password — sends reset email with secure token.
+   * Uses separate resetPasswordTokenExpiry to avoid conflicting with email verification.
    */
   async forgotPassword(email: string): Promise<{ message: string }> {
     const user = await prisma.user.findUnique({
@@ -184,13 +217,13 @@ class AuthService {
 
     // Generate reset token (valid for 1 hour)
     const resetToken = generateSecureToken();
-    const tokenExpiry = getTokenExpiry(60); // 1 hour
+    const resetPasswordTokenExpiry = getTokenExpiry(60); // 1 hour
 
     await prisma.user.update({
       where: { id: user.id },
       data: {
         resetPasswordToken: resetToken,
-        tokenExpiry,
+        resetPasswordTokenExpiry,
       },
     });
 
@@ -202,6 +235,7 @@ class AuthService {
 
   /**
    * Reset password using token from reset email.
+   * Checks resetPasswordTokenExpiry (separate from email verification expiry).
    */
   async resetPassword(
     token: string,
@@ -217,8 +251,8 @@ class AuthService {
       throw new AppError("Invalid or expired reset token", 400);
     }
 
-    // Check expiry
-    if (user.tokenExpiry && new Date() > user.tokenExpiry) {
+    // Check expiry using the dedicated reset password expiry field
+    if (user.resetPasswordTokenExpiry && new Date() > user.resetPasswordTokenExpiry) {
       throw new AppError("Reset token has expired. Please request a new one.", 400);
     }
 
@@ -230,11 +264,29 @@ class AuthService {
       data: {
         password: hashedPassword,
         resetPasswordToken: null,
-        tokenExpiry: null,
+        resetPasswordTokenExpiry: null,
       },
     });
 
     return { message: "Password reset successfully. You can now log in with your new password." };
+  }
+
+  /**
+   * Update user's phone number (from profile page).
+   * Phone is optional and not verified for now.
+   */
+  async updatePhone(
+    userId: string,
+    phoneNumber: string | undefined
+  ): Promise<{ phoneNumber: string | null }> {
+    const user = await prisma.user.update({
+      where: { id: userId },
+      data: {
+        phoneNumber: phoneNumber || null,
+      },
+    });
+
+    return { phoneNumber: user.phoneNumber };
   }
 }
 

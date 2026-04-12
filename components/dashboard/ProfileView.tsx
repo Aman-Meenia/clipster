@@ -10,6 +10,7 @@ interface ProfileViewProps {
   user: {
     username: string;
     email: string;
+    phoneNumber?: string | null;
     memberSince: string;
   };
   connectedAccounts: ConnectedAccount[];
