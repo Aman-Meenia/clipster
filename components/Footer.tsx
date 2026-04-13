@@ -36,7 +36,7 @@ export default function Footer() {
                 <Zap className="h-4 w-4 text-white" />
               </div>
               <span className="text-lg font-bold text-white">
-                Clip<span className="gradient-text">Verse</span>
+                Reel<span className="gradient-text">pey</span>
               </span>
             </Link>
             <p className="text-sm leading-relaxed text-white/30 max-w-xs">
@@ -44,14 +44,14 @@ export default function Footer() {
               every verified view your content generates.
             </p>
             <div className="mt-6 flex gap-3">
-              <Link
-                href="#"
+              <a
+                href="#campaign-request"
                 className="rounded-full bg-gradient-to-r from-cosmic-violet to-cosmic-blue px-5 py-2 text-xs font-semibold text-white transition-all hover:opacity-90"
               >
                 Launch Campaign
-              </Link>
+              </a>
               <Link
-                href="#"
+                href="/login"
                 className="rounded-full border border-white/10 px-5 py-2 text-xs font-semibold text-white/60 transition-all hover:border-white/20 hover:text-white"
               >
                 Join as Creator
@@ -68,12 +68,12 @@ export default function Footer() {
               <ul className="space-y-2.5">
                 {links.map((link) => (
                   <li key={link.label}>
-                    <Link
+                    <a
                       href={link.href}
                       className="text-sm text-white/30 transition-colors hover:text-white/60"
                     >
                       {link.label}
-                    </Link>
+                    </a>
                   </li>
                 ))}
               </ul>
@@ -84,18 +84,18 @@ export default function Footer() {
         {/* Bottom Bar */}
         <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-white/5 pt-8 sm:flex-row">
           <p className="text-xs text-white/20">
-            © {new Date().getFullYear()} ClipVerse. All rights reserved.
+            © {new Date().getFullYear()} Reelpey. All rights reserved.
           </p>
           <div className="flex gap-6">
-            <Link href="#" className="text-xs text-white/20 hover:text-white/40">
+            <a href="#" className="text-xs text-white/20 hover:text-white/40">
               Privacy
-            </Link>
-            <Link href="#" className="text-xs text-white/20 hover:text-white/40">
+            </a>
+            <a href="#" className="text-xs text-white/20 hover:text-white/40">
               Terms
-            </Link>
-            <Link href="#" className="text-xs text-white/20 hover:text-white/40">
+            </a>
+            <a href="#" className="text-xs text-white/20 hover:text-white/40">
               Cookies
-            </Link>
+            </a>
           </div>
         </div>
       </div>

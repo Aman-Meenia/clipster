@@ -68,24 +68,24 @@ export default function CampaignsView() {
   }, [hasMore, nextCursor, isFetchingMore, fetchCampaigns]);
 
   return (
-    <div className="p-8 max-w-7xl mx-auto space-y-6">
+    <div className="p-4 sm:p-6 md:p-8 max-w-7xl mx-auto space-y-4 sm:space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between py-2">
-        <h1 className="text-2xl font-bold text-white tracking-widest uppercase">
+        <h1 className="text-xl sm:text-2xl font-bold text-white tracking-widest uppercase">
           Campaigns
         </h1>
       </div>
 
       {/* Loading skeleton */}
       {isLoading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {Array.from({ length: 6 }).map((_, i) => (
             <div
               key={i}
               className="bg-[#14161F] border border-white/5 rounded-2xl overflow-hidden animate-pulse"
             >
-              <div className="h-[200px] bg-white/5" />
-              <div className="p-5 space-y-3">
+              <div className="h-[180px] sm:h-[200px] bg-white/5" />
+              <div className="p-4 sm:p-5 space-y-3">
                 <div className="h-5 w-3/4 bg-white/5 rounded" />
                 <div className="h-4 w-1/2 bg-white/5 rounded" />
                 <div className="h-4 w-full bg-white/5 rounded" />
@@ -104,7 +104,7 @@ export default function CampaignsView() {
       ) : (
         <>
           {/* Campaigns Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {campaigns.map((c) => (
               <div
                 key={c.id}
@@ -112,7 +112,7 @@ export default function CampaignsView() {
                 className="bg-[#14161F] border border-white/5 rounded-2xl overflow-hidden hover:border-red-500/30 transition-all duration-300 group flex flex-col cursor-pointer hover:shadow-xl hover:shadow-red-500/5"
               >
                 {/* Image */}
-                <div className="relative h-[200px] overflow-hidden bg-black/50">
+                <div className="relative h-[180px] sm:h-[200px] overflow-hidden bg-black/50">
                   {c.images.length > 0 ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
@@ -146,28 +146,28 @@ export default function CampaignsView() {
                 </div>
 
                 {/* Body */}
-                <div className="p-5 flex-1 flex flex-col">
-                  <h3 className="text-base font-bold text-white mb-1 line-clamp-1">
+                <div className="p-4 sm:p-5 flex-1 flex flex-col">
+                  <h3 className="text-sm sm:text-base font-bold text-white mb-1 line-clamp-1">
                     {c.name}
                   </h3>
-                  <p className="text-xs text-white/40 line-clamp-2 mb-4">
+                  <p className="text-xs text-white/40 line-clamp-2 mb-3 sm:mb-4">
                     {c.description}
                   </p>
 
-                  <div className="grid grid-cols-2 gap-3 mb-4 mt-auto">
-                    <div className="bg-white/3 rounded-xl p-3 border border-white/5">
+                  <div className="grid grid-cols-2 gap-2 sm:gap-3 mb-3 sm:mb-4 mt-auto">
+                    <div className="bg-white/3 rounded-lg sm:rounded-xl p-2.5 sm:p-3 border border-white/5">
                       <p className="text-[10px] text-white/40 uppercase tracking-wider mb-1">
                         Fee / Creator
                       </p>
-                      <p className="text-sm font-bold text-emerald-400">
+                      <p className="text-xs sm:text-sm font-bold text-emerald-400">
                         ${c.feePerCreator.toLocaleString()}
                       </p>
                     </div>
-                    <div className="bg-white/3 rounded-xl p-3 border border-white/5">
+                    <div className="bg-white/3 rounded-lg sm:rounded-xl p-2.5 sm:p-3 border border-white/5">
                       <p className="text-[10px] text-white/40 uppercase tracking-wider mb-1">
                         Max / Post
                       </p>
-                      <p className="text-sm font-bold text-red-400">
+                      <p className="text-xs sm:text-sm font-bold text-red-400">
                         ${c.maxEarningPerPostPerCreator.toLocaleString()}
                       </p>
                     </div>

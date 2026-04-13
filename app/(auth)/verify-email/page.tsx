@@ -10,6 +10,7 @@ import {
   XCircle,
   Mail,
   ArrowRight,
+  RefreshCw,
 } from "lucide-react";
 
 function VerifyEmailContent() {
@@ -22,6 +23,10 @@ function VerifyEmailContent() {
     isPending ? "pending" : token ? "loading" : "error"
   );
   const [errorMessage, setErrorMessage] = useState("");
+
+  // Resend state
+  const [resendStatus, setResendStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [resendMessage, setResendMessage] = useState("");
 
   useEffect(() => {
     if (!token || isPending) return;
@@ -49,6 +54,35 @@ function VerifyEmailContent() {
     verify();
   }, [token, isPending]);
 
+  async function handleResend() {
+    if (!email || resendStatus === "loading") return;
+
+    setResendStatus("loading");
+    setResendMessage("");
+
+    try {
+      const res = await fetch("/api/auth/resend-verification", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setResendStatus("error");
+        setResendMessage(data.error?.message ?? "Failed to resend. Please try again.");
+        return;
+      }
+
+      setResendStatus("success");
+      setResendMessage("Verification email sent! Check your inbox.");
+    } catch {
+      setResendStatus("error");
+      setResendMessage("Something went wrong. Please try again.");
+    }
+  }
+
   return (
     <main className="relative min-h-screen flex items-center justify-center overflow-hidden bg-[var(--background)]">
       {/* Aurora orbs */}
@@ -74,7 +108,7 @@ function VerifyEmailContent() {
               <Film className="w-5 h-5 text-white" />
             </div>
             <span className="text-xl font-extrabold tracking-wide text-white">
-              CLIPSTER
+              REELPEY
             </span>
           </div>
         </div>
@@ -104,10 +138,40 @@ function VerifyEmailContent() {
                   Go to Login
                   <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
                 </Link>
+
+                {/* Resend verification button */}
+                {email && (
+                  <button
+                    onClick={handleResend}
+                    disabled={resendStatus === "loading" || resendStatus === "success"}
+                    className="w-full flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-6 py-3 text-sm font-medium text-white/60 hover:bg-white/[0.06] hover:text-white/80 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {resendStatus === "loading" ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : resendStatus === "success" ? (
+                      <>
+                        <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                        <span className="text-emerald-400">Email Sent!</span>
+                      </>
+                    ) : (
+                      <>
+                        <RefreshCw className="w-4 h-4" />
+                        Resend Verification Email
+                      </>
+                    )}
+                  </button>
+                )}
+
+                {/* Resend feedback messages */}
+                {resendStatus === "error" && resendMessage && (
+                  <p className="text-xs text-red-400 text-center">{resendMessage}</p>
+                )}
+                {resendStatus === "success" && resendMessage && (
+                  <p className="text-xs text-emerald-400 text-center">{resendMessage}</p>
+                )}
               </div>
               <p className="text-xs text-white/25 pt-2">
-                Didn&apos;t get the email? Check your spam folder or try signing
-                up again.
+                Didn&apos;t get the email? Check your spam folder or click resend above.
               </p>
             </div>
           )}

@@ -187,10 +187,10 @@ export default function AddInstagramModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
-      <div className="bg-[#1A1D27] border border-white/10 rounded-2xl shadow-2xl w-full max-w-[480px] overflow-hidden animate-fade-in-up">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm px-0 sm:px-4">
+      <div className="bg-[#1A1D27] border border-white/10 rounded-t-2xl sm:rounded-2xl shadow-2xl w-full max-w-[480px] overflow-hidden animate-fade-in-up max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-white/5">
+        <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-white/5">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500 flex items-center justify-center">
               <Instagram className="w-5 h-5 text-white" />
@@ -217,7 +217,7 @@ export default function AddInstagramModal({
         </div>
 
         {/* Content */}
-        <div className="p-6">
+        <div className="p-4 sm:p-6">
           {/* Step 1: Input */}
           {step === "input" && (
             <div className="space-y-4">
@@ -374,7 +374,7 @@ export default function AddInstagramModal({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-white/5 bg-[#14161F]">
+        <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-end gap-2 sm:gap-3 px-4 sm:px-6 py-4 border-t border-white/5 bg-[#14161F]">
           {step === "input" && (
             <>
               <button

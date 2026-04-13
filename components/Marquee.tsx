@@ -1,5 +1,5 @@
 const campaigns = [
-  "Clipster.gg [UGC]",
+  "Reelpey [UGC]",
   "OneState [CLIPPING]",
   "klepto [EDITS]",
   "Yeat × EsDeeKid [EDITS]",

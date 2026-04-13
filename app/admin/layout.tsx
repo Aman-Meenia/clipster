@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Admin Dashboard | Clipster",
+  title: "Admin Dashboard | Reelpey",
   description: "Manage campaigns, users, and submissions.",
   robots: { index: false, follow: false },
 };
