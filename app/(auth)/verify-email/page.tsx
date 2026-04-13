@@ -27,6 +27,15 @@ function VerifyEmailContent() {
   // Resend state
   const [resendStatus, setResendStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [resendMessage, setResendMessage] = useState("");
+  const [resendCooldown, setResendCooldown] = useState(0);
+
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const timer = setInterval(() => {
+      setResendCooldown((current) => (current > 0 ? current - 1 : 0));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [resendCooldown]);
 
   useEffect(() => {
     if (!token || isPending) return;
@@ -55,10 +64,11 @@ function VerifyEmailContent() {
   }, [token, isPending]);
 
   async function handleResend() {
-    if (!email || resendStatus === "loading") return;
+    if (!email || resendStatus === "loading" || resendCooldown > 0) return;
 
     setResendStatus("loading");
     setResendMessage("");
+    setResendCooldown(30);
 
     try {
       const res = await fetch("/api/auth/resend-verification", {
@@ -82,6 +92,8 @@ function VerifyEmailContent() {
       setResendMessage("Something went wrong. Please try again.");
     }
   }
+
+  const isExpiredTokenError = /expired/i.test(errorMessage);
 
   return (
     <main className="relative min-h-screen flex items-center justify-center overflow-hidden bg-[var(--background)]">
@@ -143,15 +155,15 @@ function VerifyEmailContent() {
                 {email && (
                   <button
                     onClick={handleResend}
-                    disabled={resendStatus === "loading" || resendStatus === "success"}
+                    disabled={resendStatus === "loading" || resendCooldown > 0}
                     className="w-full flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-6 py-3 text-sm font-medium text-white/60 hover:bg-white/[0.06] hover:text-white/80 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {resendStatus === "loading" ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : resendStatus === "success" ? (
+                    ) : resendCooldown > 0 ? (
                       <>
-                        <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                        <span className="text-emerald-400">Email Sent!</span>
+                        <RefreshCw className="w-4 h-4" />
+                        Resend in {resendCooldown}s
                       </>
                     ) : (
                       <>
@@ -226,6 +238,28 @@ function VerifyEmailContent() {
                   "The verification link is invalid or has expired."}
               </p>
               <div className="pt-4 space-y-3">
+                {email && isExpiredTokenError && (
+                  <button
+                    onClick={handleResend}
+                    disabled={resendStatus === "loading" || resendCooldown > 0}
+                    className="w-full flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] px-6 py-3 text-sm font-medium text-white/60 hover:bg-white/[0.06] hover:text-white/80 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {resendStatus === "loading" ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : resendCooldown > 0 ? (
+                      <>
+                        <RefreshCw className="w-4 h-4" />
+                        Resend in {resendCooldown}s
+                      </>
+                    ) : (
+                      <>
+                        <RefreshCw className="w-4 h-4" />
+                        Resend Verification Email
+                      </>
+                    )}
+                  </button>
+                )}
+
                 <Link
                   href="/signup"
                   className="group w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cosmic-violet to-cosmic-blue px-6 py-3.5 text-sm font-semibold text-white shadow-lg shadow-cosmic-violet/20 transition-all hover:shadow-xl hover:shadow-cosmic-violet/30 hover:scale-[1.01]"
@@ -240,6 +274,17 @@ function VerifyEmailContent() {
                   Back to login
                 </Link>
               </div>
+
+              {(resendStatus === "error" || resendStatus === "success") &&
+                resendMessage && (
+                  <p
+                    className={`text-xs ${
+                      resendStatus === "success" ? "text-emerald-400" : "text-red-400"
+                    }`}
+                  >
+                    {resendMessage}
+                  </p>
+                )}
             </div>
           )}
         </div>

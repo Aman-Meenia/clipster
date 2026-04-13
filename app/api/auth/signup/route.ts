@@ -4,7 +4,7 @@ import { fromZodError } from "zod-validation-error";
 import { signupSchema } from "@/types/auth";
 import authService from "@/service/auth/auth.service";
 import { successResponse, errorResponse } from "@/lib/api-response";
-import { rateLimit } from "@/lib/rate-limit";
+import { rateLimit, store } from "@/lib/rate-limit";
 import { AppError } from "@/lib/errors";
 
 /**
@@ -17,6 +17,9 @@ export async function POST(request: NextRequest) {
     // Rate limit by IP
     const ip = request.headers.get("x-forwarded-for") ?? "unknown";
     const rateLimitResult = rateLimit(`signup:${ip}`, 5, 60_000);
+    
+    console.log("Rate Limit Map (Signup):", store);
+
     if (!rateLimitResult.success) {
       return errorResponse("Too many requests. Please try again later.", 429);
     }

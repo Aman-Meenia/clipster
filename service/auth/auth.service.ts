@@ -1,6 +1,11 @@
 import prisma from "@/lib/prisma";
 import authRegistry from "./auth.registry";
-import { AuthenticationError, ConflictError, AppError } from "@/lib/errors";
+import {
+  AuthenticationError,
+  ConflictError,
+  AppError,
+  EmailNotVerifiedError,
+} from "@/lib/errors";
 import { generateSecureToken, getTokenExpiry } from "@/lib/token";
 import { sendVerificationEmail, sendResetPasswordEmail } from "@/lib/email";
 import type {
@@ -88,7 +93,7 @@ class AuthService {
     });
 
     if (!user) {
-      throw new AppError("Invalid or expired verification token", 400);
+      throw new AppError("Invalid verification token", 400);
     }
 
     // Check expiry
@@ -115,22 +120,20 @@ class AuthService {
    */
   async resendVerificationEmail(email: string): Promise<{ message: string }> {
     const user = await prisma.user.findUnique({
-      where: { email },
+      where: { email: email.toLowerCase() },
     });
 
-    // Don't reveal whether the email exists
     if (!user) {
-      return { message: "If an account exists with that email, a new verification link has been sent." };
+      throw new AppError("No account found for this email address.", 404);
     }
 
-    // Already verified
     if (user.isEmailVerified) {
-      return { message: "Email is already verified. You can log in." };
+      throw new AppError("Email is already verified. Please log in.", 400);
     }
 
-    // Generate new verification token (valid for 24 hours)
+    // Generate new verification token (valid for 15 minutes)
     const emailToken = generateSecureToken();
-    const tokenExpiry = getTokenExpiry(24 * 60);
+    const tokenExpiry = getTokenExpiry(15);
 
     await prisma.user.update({
       where: { id: user.id },
@@ -174,10 +177,7 @@ class AuthService {
 
     // Check email verification
     if (!user.isEmailVerified) {
-      throw new AppError(
-        "Please verify your email address before logging in. Check your inbox for the verification link.",
-        403
-      );
+      throw new EmailNotVerifiedError(user.email);
     }
 
     const payload: JwtPayload = {

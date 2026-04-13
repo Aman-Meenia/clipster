@@ -11,7 +11,7 @@ interface RateLimitEntry {
   resetTime: number;
 }
 
-const store = new Map<string, RateLimitEntry>();
+export const store = new Map<string, RateLimitEntry>();
 
 // Clean up expired entries every 60 seconds
 setInterval(() => {

@@ -11,8 +11,6 @@ import {
   Loader2,
   ArrowRight,
   Check,
-  Mail,
-  Lock,
 } from "lucide-react";
 
 type FormErrors = Partial<Record<"email" | "password", string>>;
@@ -101,9 +99,11 @@ export default function SignupPage() {
         }}
       />
 
-      <div className="relative z-10 w-full max-w-md px-6 py-12 animate-fade-in-up">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(124,58,237,0.16),transparent_55%),radial-gradient(circle_at_bottom_right,rgba(6,182,212,0.12),transparent_45%)]" />
+
+      <div className="relative z-10 w-full max-w-lg px-5 py-10 sm:px-6 animate-fade-in-up">
         {/* Logo */}
-        <div className="flex flex-col items-center mb-8">
+        <div className="flex flex-col items-center mb-8 text-center">
           <Link
             href="/"
             className="flex items-center gap-2 mb-6 cursor-pointer"
@@ -117,73 +117,56 @@ export default function SignupPage() {
             </span>
           </Link>
 
-          <h1 className="text-4xl font-extrabold text-white text-center leading-tight">
+          <span className="mb-3 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-cosmic-cyan/90">
+            Get Started
+          </span>
+          <h1 className="text-4xl font-extrabold text-white leading-tight">
             Create your <span className="gradient-text">account.</span>
           </h1>
-          <p className="mt-3 text-white/50 text-sm text-center">
+          <p className="mt-3 text-sm text-white/55">
             Join 60K+ creators earning from their content.
           </p>
         </div>
 
-        {/* Step indicator - single step */}
-        <div className="flex items-center justify-center gap-6 mb-8">
-          {[
-            { label: "Email", icon: Mail },
-            { label: "Password", icon: Lock },
-          ].map((s, i) => {
-            const Icon = s.icon;
-            return (
-              <div key={s.label} className="flex items-center">
-                <div className="flex flex-col items-center">
-                  <div className="w-10 h-10 rounded-full flex items-center justify-center border-2 border-cosmic-violet/60 bg-cosmic-violet/20">
-                    <Icon className="w-4 h-4 text-cosmic-purple" />
-                  </div>
-                  <span className="text-[10px] mt-1.5 font-medium text-white/70">
-                    {s.label}
-                  </span>
-                </div>
-                {i < 1 && (
-                  <div className="w-16 h-[2px] mx-2 mb-5 rounded-full bg-gradient-to-r from-cosmic-violet to-cosmic-blue" />
-                )}
-              </div>
-            );
-          })}
-        </div>
+        <div className="rounded-[26px] bg-gradient-to-b from-white/22 via-white/8 to-white/[0.03] p-[1px] shadow-[0_20px_80px_rgba(124,58,237,0.1)]">
+          {/* Card */}
+          <div className="glass relative overflow-hidden rounded-[25px] px-6 py-7 sm:px-8">
+            <div className="pointer-events-none absolute -top-20 right-0 h-48 w-48 rounded-full bg-cosmic-violet/20 blur-3xl" />
+            <div className="pointer-events-none absolute -bottom-24 -left-8 h-52 w-52 rounded-full bg-cosmic-cyan/15 blur-3xl" />
 
-        {/* Card */}
-        <div className="glass rounded-2xl p-8 space-y-5">
-          {serverError && (
-            <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
-              {serverError}
-            </div>
-          )}
+            <form onSubmit={handleSubmit} noValidate className="relative space-y-5">
 
-          <form onSubmit={handleSubmit} noValidate className="space-y-5">
             {/* Email */}
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <label
-                className="text-sm font-medium text-white/70"
+                className="text-xs font-semibold uppercase tracking-[0.1em] text-white/60"
                 htmlFor="signup-email"
               >
                 Email address
               </label>
-              <input
-                id="signup-email"
-                type="email"
-                autoComplete="email"
-                value={email}
-                onChange={(e) => {
-                  setEmail(e.target.value);
-                  if (formErrors.email)
-                    setFormErrors((p) => ({ ...p, email: undefined }));
-                }}
-                placeholder="you@example.com"
-                className={`w-full rounded-xl bg-white/[0.07] border px-4 py-3 text-sm text-white placeholder-white/30 outline-none transition-all focus:bg-white/[0.1] focus:border-cosmic-violet/60 focus:ring-2 focus:ring-cosmic-violet/20 ${
+              <div
+                className={`rounded-xl border bg-white/[0.06] transition-all focus-within:bg-white/[0.08] focus-within:ring-2 focus-within:ring-cosmic-violet/20 ${
                   formErrors.email
-                    ? "border-red-500/50"
-                    : "border-white/10"
+                    ? "border-red-500/50 focus-within:border-red-500/50"
+                    : "border-white/12 focus-within:border-cosmic-violet/60"
                 }`}
-              />
+              >
+                <input
+                  id="signup-email"
+                  type="email"
+                  autoComplete="email"
+                  value={email}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    if (formErrors.email) {
+                      setFormErrors((p) => ({ ...p, email: undefined }));
+                    }
+                    if (serverError) setServerError(null);
+                  }}
+                  placeholder="you@example.com"
+                  className="h-12 w-full bg-transparent px-4 text-sm text-white placeholder-white/35 outline-none"
+                />
+              </div>
               {formErrors.email && (
                 <p className="text-xs text-red-400 mt-1">
                   {formErrors.email}
@@ -192,14 +175,20 @@ export default function SignupPage() {
             </div>
 
             {/* Password */}
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <label
-                className="text-sm font-medium text-white/70"
+                className="text-xs font-semibold uppercase tracking-[0.1em] text-white/60"
                 htmlFor="signup-password"
               >
                 Password
               </label>
-              <div className="relative">
+              <div
+                className={`relative rounded-xl border bg-white/[0.06] transition-all focus-within:bg-white/[0.08] focus-within:ring-2 focus-within:ring-cosmic-violet/20 ${
+                  formErrors.password
+                    ? "border-red-500/50 focus-within:border-red-500/50"
+                    : "border-white/12 focus-within:border-cosmic-violet/60"
+                }`}
+              >
                 <input
                   id="signup-password"
                   type={showPassword ? "text" : "password"}
@@ -207,19 +196,21 @@ export default function SignupPage() {
                   value={password}
                   onChange={(e) => {
                     setPassword(e.target.value);
-                    if (formErrors.password) setFormErrors((p) => ({ ...p, password: undefined }));
+                    if (formErrors.password) {
+                      setFormErrors((p) => ({ ...p, password: undefined }));
+                    }
+                    if (serverError) setServerError(null);
                   }}
                   placeholder="Min. 8 characters"
-                  className={`w-full rounded-xl bg-white/[0.07] border px-4 py-3 pr-12 text-sm text-white placeholder-white/30 outline-none transition-all focus:bg-white/[0.1] focus:border-cosmic-violet/60 focus:ring-2 focus:ring-cosmic-violet/20 ${
-                    formErrors.password
-                      ? "border-red-500/50"
-                      : "border-white/10"
-                  }`}
+                  className="h-12 w-full bg-transparent px-4 pr-12 text-sm text-white placeholder-white/35 outline-none"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/70 transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-white/45 hover:text-white/75 transition-colors"
+                  aria-label={
+                    showPassword ? "Hide password value" : "Show password value"
+                  }
                 >
                   {showPassword ? (
                     <EyeOff className="w-4 h-4" />
@@ -255,7 +246,7 @@ export default function SignupPage() {
                       />
                     ))}
                   </div>
-                  <ul className="grid grid-cols-2 gap-x-4 gap-y-1">
+                  <ul className="grid grid-cols-1 gap-y-1 sm:grid-cols-2 sm:gap-x-4">
                     {(
                       [
                         [checks.length, "At least 8 characters"],
@@ -279,10 +270,15 @@ export default function SignupPage() {
               )}
             </div>
 
+            <p className="text-xs text-white/45">
+              Your password must include uppercase, lowercase, number, and 8+
+              characters.
+            </p>
+
             <button
               type="submit"
               disabled={isLoading}
-              className="group w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cosmic-violet to-cosmic-blue px-6 py-3.5 text-sm font-semibold text-white shadow-lg shadow-cosmic-violet/20 transition-all hover:shadow-xl hover:shadow-cosmic-violet/30 hover:scale-[1.01] disabled:opacity-60 disabled:cursor-not-allowed disabled:scale-100 mt-2"
+              className="group mt-1 w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cosmic-violet via-cosmic-purple to-cosmic-blue px-6 py-3.5 text-sm font-semibold text-white shadow-lg shadow-cosmic-violet/20 transition-all hover:shadow-xl hover:shadow-cosmic-violet/30 hover:scale-[1.01] disabled:opacity-60 disabled:cursor-not-allowed disabled:scale-100"
             >
               {isLoading ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -293,15 +289,26 @@ export default function SignupPage() {
                 </>
               )}
             </button>
+
+            {serverError && (
+              <p
+                className="pt-1 text-center text-sm text-red-300"
+                role="alert"
+                aria-live="polite"
+              >
+                {serverError}
+              </p>
+            )}
           </form>
+          </div>
         </div>
 
         {/* Footer */}
-        <p className="mt-6 text-center text-xs text-white/30">
+        <p className="mt-6 text-center text-xs text-white/35">
           Already have an account?{" "}
           <Link
             href="/login"
-            className="text-cosmic-purple hover:text-white transition-colors underline underline-offset-2"
+            className="text-cosmic-cyan hover:text-white transition-colors underline underline-offset-2"
           >
             Sign in
           </Link>

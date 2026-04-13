@@ -35,6 +35,8 @@ const envSchema = z.object({
   R2_SECRET_ACCESS_KEY: z.string().default(""),
   R2_BUCKET_NAME: z.string().default(""),
   R2_PUBLIC_URL: z.string().default(""),
+  EMAIL_VERIFICATION_RATE_LIMIT_TIME: z.coerce.number().default(15),
+  EMAIL_VERIFICATION_RATE_LIMIT_REQUESTS: z.coerce.number().default(3),
 });
 
 const parsed = envSchema.safeParse(process.env);

@@ -1,11 +1,11 @@
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { ZodError } from "zod";
 import { fromZodError } from "zod-validation-error";
 import { loginSchema } from "@/types/auth";
 import authService from "@/service/auth/auth.service";
 import { successResponse, errorResponse } from "@/lib/api-response";
 import { rateLimit } from "@/lib/rate-limit";
-import { AppError } from "@/lib/errors";
+import { AppError, EmailNotVerifiedError } from "@/lib/errors";
 
 /**
  * POST /api/auth/login
@@ -44,6 +44,13 @@ export async function POST(request: NextRequest) {
     if (error instanceof ZodError) {
       const validationError = fromZodError(error);
       return errorResponse(validationError.message, 422);
+    }
+
+    if (error instanceof EmailNotVerifiedError) {
+      return NextResponse.json(
+        { error: error.code, email: error.email },
+        { status: 403 }
+      );
     }
 
     if (error instanceof AppError) {

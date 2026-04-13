@@ -4,9 +4,17 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
-import { z } from "zod";
 import { loginSchema, type LoginInput } from "@/types/auth";
-import { Film, Eye, EyeOff, Loader2, ArrowRight } from "lucide-react";
+import {
+  Film,
+  Eye,
+  EyeOff,
+  Loader2,
+  ArrowRight,
+  RefreshCw,
+  CheckCircle2,
+  AlertCircle,
+} from "lucide-react";
 
 type FieldErrors = Partial<Record<keyof LoginInput, string>>;
 
@@ -30,8 +38,25 @@ export default function LoginPage() {
   });
   const [errors, setErrors] = useState<FieldErrors>({});
   const [serverError, setServerError] = useState<string | null>(null);
+  const [unverifiedEmail, setUnverifiedEmail] = useState<string | null>(null);
+  const [isResendingVerification, setIsResendingVerification] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const timer = setInterval(() => {
+      setResendCooldown((current) => (current > 0 ? current - 1 : 0));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [resendCooldown]);
+
+  function showToast(msg: string, ok: boolean) {
+    setToast({ msg, ok });
+    setTimeout(() => setToast(null), 3500);
+  }
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     const { name, value } = e.target;
@@ -39,11 +64,14 @@ export default function LoginPage() {
     if (errors[name as keyof LoginInput]) {
       setErrors((prev) => ({ ...prev, [name]: undefined }));
     }
+    if (serverError) setServerError(null);
+    if (unverifiedEmail) setUnverifiedEmail(null);
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setServerError(null);
+    setErrors({});
 
     // Client-side validation
     const result = loginSchema.safeParse(form);
@@ -68,6 +96,13 @@ export default function LoginPage() {
       const data = await res.json();
 
       if (!res.ok) {
+        if (data?.error === "EMAIL_NOT_VERIFIED" && typeof data?.email === "string") {
+          setUnverifiedEmail(data.email);
+          setServerError(null);
+          return;
+        }
+
+        setUnverifiedEmail(null);
         setServerError(
           data.error?.message ?? "Login failed. Please try again."
         );
@@ -77,6 +112,7 @@ export default function LoginPage() {
       // Save via context
       const authedUser = data.data?.user;
       if (authedUser) {
+        setUnverifiedEmail(null);
         login(authedUser);
 
         // Redirect to admin page if user is ADMIN
@@ -95,8 +131,54 @@ export default function LoginPage() {
     }
   }
 
+  async function handleResendVerification() {
+    if (!unverifiedEmail || isResendingVerification || resendCooldown > 0) return;
+
+    setIsResendingVerification(true);
+    setResendCooldown(30);
+    setServerError(null);
+
+    try {
+      const res = await fetch("/api/auth/resend-verification", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: unverifiedEmail }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        showToast(data.error?.message ?? "Unable to resend verification email.", false);
+        return;
+      }
+
+      showToast("Verification email sent. Please check your inbox.", true);
+    } catch {
+      showToast("Network error. Please try again.", false);
+    } finally {
+      setIsResendingVerification(false);
+    }
+  }
+
   return (
     <main className="relative min-h-screen flex items-center justify-center overflow-hidden bg-[var(--background)]">
+      {toast && (
+        <div
+          className={`fixed right-5 top-5 z-50 flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-medium shadow-2xl animate-fade-in-up ${
+            toast.ok
+              ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-300"
+              : "border-red-500/30 bg-red-500/10 text-red-300"
+          }`}
+        >
+          {toast.ok ? (
+            <CheckCircle2 className="h-4 w-4 shrink-0" />
+          ) : (
+            <AlertCircle className="h-4 w-4 shrink-0" />
+          )}
+          {toast.msg}
+        </div>
+      )}
+
       {/* Aurora orbs */}
       <div className="aurora-orb aurora-orb-1" />
       <div className="aurora-orb aurora-orb-2" />
@@ -112,9 +194,11 @@ export default function LoginPage() {
         }}
       />
 
-      <div className="relative z-10 w-full max-w-md px-6 py-12 animate-fade-in-up">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(124,58,237,0.16),transparent_55%),radial-gradient(circle_at_bottom_right,rgba(6,182,212,0.12),transparent_45%)]" />
+
+      <div className="relative z-10 w-full max-w-lg px-5 py-10 sm:px-6 animate-fade-in-up">
         {/* Logo */}
-        <div className="flex flex-col items-center mb-8">
+        <div className="flex flex-col items-center mb-8 text-center">
           <Link
             href="/"
             className="flex items-center gap-2 mb-6 cursor-pointer"
@@ -128,64 +212,78 @@ export default function LoginPage() {
             </span>
           </Link>
 
-          <h1 className="text-4xl font-extrabold text-white text-center leading-tight">
+          <span className="mb-3 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-cosmic-cyan/90">
+            Creator Portal
+          </span>
+          <h1 className="text-4xl font-extrabold text-white leading-tight">
             Welcome <span className="gradient-text">back.</span>
           </h1>
-          <p className="mt-3 text-white/50 text-sm text-center">
+          <p className="mt-3 text-sm text-white/55">
             Sign in to continue creating and earning.
           </p>
         </div>
 
-        {/* Card */}
-        <div className="glass rounded-2xl p-8 space-y-5">
-          {serverError && (
-            <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
-              {serverError}
-            </div>
-          )}
+        <div className="rounded-[26px] bg-gradient-to-b from-white/22 via-white/8 to-white/[0.03] p-[1px] shadow-[0_20px_80px_rgba(6,182,212,0.08)]">
+          {/* Card */}
+          <div className="glass relative overflow-hidden rounded-[25px] px-6 py-7 sm:px-8">
+            <div className="pointer-events-none absolute -top-20 right-0 h-48 w-48 rounded-full bg-cosmic-violet/20 blur-3xl" />
+            <div className="pointer-events-none absolute -bottom-24 -left-8 h-52 w-52 rounded-full bg-cosmic-cyan/15 blur-3xl" />
 
-          <form onSubmit={handleSubmit} noValidate className="space-y-5">
+            <form onSubmit={handleSubmit} noValidate className="relative space-y-5">
             {/* Email */}
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               <label
-                className="text-sm font-medium text-white/70"
+                className="text-xs font-semibold uppercase tracking-[0.1em] text-white/60"
                 htmlFor="email"
               >
                 Email address
               </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                value={form.email}
-                onChange={handleChange}
-                placeholder="you@example.com"
-                className={`w-full rounded-xl bg-white/[0.07] border px-4 py-3 text-sm text-white placeholder-white/30 outline-none transition-all focus:bg-white/[0.1] focus:border-cosmic-violet/60 focus:ring-2 focus:ring-cosmic-violet/20 ${errors.email ? "border-red-500/50" : "border-white/10"
-                  }`}
-              />
+              <div
+                className={`rounded-xl border bg-white/[0.06] transition-all focus-within:bg-white/[0.08] focus-within:ring-2 focus-within:ring-cosmic-violet/20 ${
+                  errors.email
+                    ? "border-red-500/50 focus-within:border-red-500/50"
+                    : "border-white/12 focus-within:border-cosmic-violet/60"
+                }`}
+              >
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  autoComplete="email"
+                  value={form.email}
+                  onChange={handleChange}
+                  placeholder="you@example.com"
+                  className="h-12 w-full bg-transparent px-4 text-sm text-white placeholder-white/35 outline-none"
+                />
+              </div>
               {errors.email && (
                 <p className="text-xs text-red-400 mt-1">{errors.email}</p>
               )}
             </div>
 
             {/* Password */}
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-between">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between gap-3">
                 <label
-                  className="text-sm font-medium text-white/70"
+                  className="text-xs font-semibold uppercase tracking-[0.1em] text-white/60"
                   htmlFor="password"
                 >
                   Password
                 </label>
                 <Link
                   href="/forgot-password"
-                  className="text-xs text-cosmic-purple hover:text-white transition-colors"
+                  className="text-xs text-cosmic-cyan/90 hover:text-white transition-colors"
                 >
                   Forgot password?
                 </Link>
               </div>
-              <div className="relative">
+              <div
+                className={`relative rounded-xl border bg-white/[0.06] transition-all focus-within:bg-white/[0.08] focus-within:ring-2 focus-within:ring-cosmic-violet/20 ${
+                  errors.password
+                    ? "border-red-500/50 focus-within:border-red-500/50"
+                    : "border-white/12 focus-within:border-cosmic-violet/60"
+                }`}
+              >
                 <input
                   id="password"
                   name="password"
@@ -194,13 +292,15 @@ export default function LoginPage() {
                   value={form.password}
                   onChange={handleChange}
                   placeholder="Enter your password"
-                  className={`w-full rounded-xl bg-white/[0.07] border px-4 py-3 pr-12 text-sm text-white placeholder-white/30 outline-none transition-all focus:bg-white/[0.1] focus:border-cosmic-violet/60 focus:ring-2 focus:ring-cosmic-violet/20 ${errors.password ? "border-red-500/50" : "border-white/10"
-                    }`}
+                  className="h-12 w-full bg-transparent px-4 pr-12 text-sm text-white placeholder-white/35 outline-none"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/70 transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-white/45 hover:text-white/75 transition-colors"
+                  aria-label={
+                    showPassword ? "Hide password value" : "Show password value"
+                  }
                 >
                   {showPassword ? (
                     <EyeOff className="w-4 h-4" />
@@ -214,11 +314,15 @@ export default function LoginPage() {
               )}
             </div>
 
+            <p className="text-xs text-white/45">
+              Use your registered email and password to access your dashboard.
+            </p>
+
             {/* Submit */}
             <button
               type="submit"
               disabled={isLoading}
-              className="group w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cosmic-violet to-cosmic-blue px-6 py-3.5 text-sm font-semibold text-white shadow-lg shadow-cosmic-violet/20 transition-all hover:shadow-xl hover:shadow-cosmic-violet/30 hover:scale-[1.01] disabled:opacity-60 disabled:cursor-not-allowed disabled:scale-100 mt-2"
+              className="group mt-1 w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-cosmic-violet via-cosmic-purple to-cosmic-blue px-6 py-3.5 text-sm font-semibold text-white shadow-lg shadow-cosmic-violet/20 transition-all hover:shadow-xl hover:shadow-cosmic-violet/30 hover:scale-[1.01] disabled:opacity-60 disabled:cursor-not-allowed disabled:scale-100"
             >
               {isLoading ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -229,15 +333,54 @@ export default function LoginPage() {
                 </>
               )}
             </button>
+
+            {unverifiedEmail && (
+              <div className="rounded-xl border border-amber-400/25 bg-amber-400/8 px-4 py-3 text-center">
+                <p className="text-sm text-amber-100">
+                  Your email is not verified yet. Please verify it before logging in.
+                </p>
+                <button
+                  type="button"
+                  onClick={handleResendVerification}
+                  disabled={isResendingVerification || resendCooldown > 0}
+                  className="mt-2 inline-flex items-center justify-center gap-2 rounded-lg border border-white/15 bg-white/5 px-3 py-2 text-xs font-medium text-white/80 transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {isResendingVerification ? (
+                    <>
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      Sending...
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCw className="h-3.5 w-3.5" />
+                      {resendCooldown > 0
+                        ? `Resend in ${resendCooldown}s`
+                        : "Resend Email"}
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
+
+            {serverError && (
+              <p
+                className="pt-1 text-center text-sm text-red-300"
+                role="alert"
+                aria-live="polite"
+              >
+                {serverError}
+              </p>
+            )}
           </form>
+          </div>
         </div>
 
         {/* Footer */}
-        <p className="mt-6 text-center text-xs text-white/30">
+        <p className="mt-6 text-center text-xs text-white/35">
           Don&apos;t have an account?{" "}
           <Link
             href="/signup"
-            className="text-cosmic-purple hover:text-white transition-colors underline underline-offset-2"
+            className="text-cosmic-cyan hover:text-white transition-colors underline underline-offset-2"
           >
             Sign up
           </Link>

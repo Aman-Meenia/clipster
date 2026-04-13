@@ -46,3 +46,14 @@ export class ForbiddenError extends AppError {
     super(message, 403);
   }
 }
+
+export class EmailNotVerifiedError extends AppError {
+  public readonly code: "EMAIL_NOT_VERIFIED";
+  public readonly email: string;
+
+  constructor(email: string) {
+    super("Email is not verified", 403);
+    this.code = "EMAIL_NOT_VERIFIED";
+    this.email = email;
+  }
+}
